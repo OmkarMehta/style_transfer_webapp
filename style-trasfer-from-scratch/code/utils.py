@@ -73,3 +73,22 @@ def loss_of_style(input_features, style_layer_indices, style_gram_matrices, weig
     # return style loss
     return style_loss
 
+def loss_of_content(input_features, weight_of_content_layer, content_image_features):
+    '''
+    From the paper:
+    The content loss is a weighted sum of squared differences between the features of the content image and the features of the generated image.
+
+    :Input:
+    - input_features: (batch_size, channels, height, width) PyTorch tensor –– it's a list of features of the user's image
+    - weight_of_content_layer: float, weight of the content layer
+    - content_image_features: (batch_size, channels, height, width) PyTorch tensor –– it's a list of features of the content image
+
+    :Output:
+    - content_loss: float, content loss
+
+    '''
+    # compute the content loss
+    content_loss = ((input_features - content_image_features) ** 2).sum() * weight_of_content_layer
+    # return content loss
+    return content_loss
+    
