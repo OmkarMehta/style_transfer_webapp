@@ -88,7 +88,7 @@ def loss_of_content(input_features, weight_of_content_layer, content_image_featu
 
     '''
     # compute the content loss
-    content_loss = ((input_features - content_image_features) ** 2).sum() * weight_of_content_layer
+    content_loss = torch.sum(weight_of_content_layer * (input_features - content_image_features) ** 2)
     # return content loss
     return content_loss
 
@@ -105,7 +105,7 @@ def rescale(x):
     x_rescaled = (x - low) / (high - low)
     return x_rescaled
 
-    
+
 def detransform_content(content, image_size):
     transform = transforms.Compose([
         transforms.Lambda(lambda x: x[0]),
