@@ -91,4 +91,19 @@ def loss_of_content(input_features, weight_of_content_layer, content_image_featu
     content_loss = ((input_features - content_image_features) ** 2).sum() * weight_of_content_layer
     # return content loss
     return content_loss
-    
+
+def content_transform(content, image_size):
+    transform = transforms.Compose([
+        transforms.Resize(image_size),
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: x[None])
+    ])
+    return transform(content)
+
+def detransform_content(content, image_size):
+    transform = transforms.Compose([
+        transforms.Lambda(lambda x: x[0]),
+        transforms.Lambda(rescale),
+        transforms.ToPILImage(),
+    ])
+    return transform(content)
