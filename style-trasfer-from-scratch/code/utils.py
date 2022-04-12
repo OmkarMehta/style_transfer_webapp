@@ -100,6 +100,12 @@ def content_transform(content, image_size):
     ])
     return transform(content)
 
+def rescale(x):
+    low, high = x.min(), x.max()
+    x_rescaled = (x - low) / (high - low)
+    return x_rescaled
+
+    
 def detransform_content(content, image_size):
     transform = transforms.Compose([
         transforms.Lambda(lambda x: x[0]),
