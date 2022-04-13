@@ -96,6 +96,7 @@ def content_transform(content, image_size):
     transform = transforms.Compose([
         transforms.Resize(image_size),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         transforms.Lambda(lambda x: x[None])
     ])
     return transform(content)
@@ -109,6 +110,8 @@ def rescale(x):
 def detransform_content(content, image_size):
     transform = transforms.Compose([
         transforms.Lambda(lambda x: x[0]),
+        transforms.Normalize(mean=[0, 0, 0], std=[1.0 / s for s in [0.229, 0.224, 0.225]]),
+        transforms.Normalize(mean=[-m for m in [0.485, 0.456, 0.406]], std=[1, 1, 1]),
         transforms.Lambda(rescale),
         transforms.ToPILImage(),
     ])
