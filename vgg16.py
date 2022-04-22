@@ -65,7 +65,7 @@ class VGG16(torch.nn.Module):
         self.deconv2 = UpSampleConv(256, 128, kernel_size=3, stride=1, upsample=2)
         self.deconv3 = UpSampleConv(128, 64, kernel_size=3, stride=1, upsample=2)
         self.deconv4 = UpSampleConv(64, 32, kernel_size=3, stride=1, upsample=2)
-        self.deconv5 = UpSampleConv(32, 3, kernel_size=3, stride=1)
+        self.deconv5 = UpSampleConv(32, 3, kernel_size=3, stride=1, upsample=2)
 
         # if gradients are required, update parameters to have gradients
         if requires_grad:
