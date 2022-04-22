@@ -15,7 +15,7 @@ model_zoo = {
     'custom': CustomModel
 }
 
-def train(content_weight=1e5, style_weight=1e10, num_epochs=10, batch_size=32, model_name='vgg', style_image_path = 'style/starry_night.jpg'):
+def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, batch_size=32, model_name='vgg', style_image_path = 'style/starry_night.jpg'):
     # initialize the device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # make the transforms
@@ -56,21 +56,22 @@ def train(content_weight=1e5, style_weight=1e10, num_epochs=10, batch_size=32, m
     print(style)
     
     # transform the style image
-    style = style_transform(style).to(device)
+    style = style_transform(style)
     print(style.shape)
     # print('Style image is on device: {}'.format(style.device))
     # repeat the style image for each batch
-    style = style.repeat(batch_size, 1, 1, 1)
+    style = style.repeat(batch_size, 1, 1, 1).to(device)
     
     # print the device of the style image
     
     # cuda.FloatTensor 
-    style = torch.cuda.FloatTensor(style)
-    # print the tensor type of the style image
-    print('Style image is of type: {}'.format(style.type()))
+    # style = torch.cuda.FloatTensor(style)
+    # # print the tensor type of the style image
+    # print('Style image is of type: {}'.format(style.type()))
 
     # extract the features of the style image
-    features_style = vgg16_fe(utils.normalize_batch(style).to(device))
+    # features_style = vgg16_fe(utils.normalize_batch(style).to(device))
+    features_style = vgg16_fe(style)
 
     # get the gram matrix of the style image
     gram_style = [utils.gram_matrix(y) for y in features_style]
@@ -101,12 +102,12 @@ def train(content_weight=1e5, style_weight=1e10, num_epochs=10, batch_size=32, m
 
             # normalize the generated image as well as the content images
             # this is done to make the loss function more robust
-            generated_images = utils.normalize_batch(generated_images)
+            # generated_images = utils.normalize_batch(generated_images)
             # print the shape of the normalized generated images
-            print('Normalized generated images shape: {}'.format(generated_images.shape))
-            content_images = utils.normalize_batch(content_images)
+            # print('Normalized generated images shape: {}'.format(generated_images.shape))
+            # content_images = utils.normalize_batch(content_images)
             # print the shape of the normalized content images
-            print('Normalized content images shape: {}'.format(content_images.shape))
+            # print('Normalized content images shape: {}'.format(content_images.shape))
 
             # extract the features of the generated images and the content images
             features_generated = vgg16_fe(generated_images)
@@ -118,20 +119,22 @@ def train(content_weight=1e5, style_weight=1e10, num_epochs=10, batch_size=32, m
 
             # calculate the content loss
             content_loss = content_weight * criterion(features_generated.x2, features_content.x2)
+            print('Content loss: {}'.format(content_loss.item()))
 
             # calculate the style loss
             style_loss = 0.0
             for feat_y, gram_st in zip(features_generated, gram_style):
+                print ('feat_y shape: {}'.format(feat_y.shape))
                 gram_y = utils.gram_matrix(feat_y) # get the gram matrix of the generated image
                 # calculate the style loss between gram matrix of generated image and gram matrix of style image
-                style_loss += criterion(gram_y, gram_st[:n_batch, :, :]) 
+                style_loss += criterion(gram_y, gram_st[:n_batch, :, :].clone()) 
             style_loss *= style_weight
 
             # calculate the total loss
             loss = content_loss + style_loss
             # backpropagate the loss
             torch.autograd.set_detect_anomaly(True)
-            loss.backward(retain_graph=True)
+            loss.backward()
             # loss.backward(retain_graph=True)
             # update the weights
             optimizer.step()

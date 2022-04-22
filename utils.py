@@ -21,8 +21,6 @@ def gram_matrix(y):
     (b, ch, h, w) = y.size()
     # reshape the tensor to get the features for each channel
     features = y.view(b, ch, w * h)
-    # transpose the features so that the channels are the first dimension
-    features_t = features.transpose(1, 2)
     # get the gram matrix
-    gram = features.bmm(features_t) / (ch * h * w)
+    gram = torch.bmm(features, features.transpose(1, 2))/ (ch * h * w)
     return gram
