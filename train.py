@@ -35,7 +35,7 @@ def train(content_weight=1e5, style_weight=1e10, num_epochs=10, batch_size=32, m
     if model_name == 'custom':
         model = model_zoo[model_name]().to(device)
     else:
-        model = model_zoo['vgg']().to(device)
+        model = VGG16(requires_grad=True).to(device)
     
     # our feature extractor is VGG16
     vgg16_fe = model_zoo['vgg_fe']().to(device) # requires_grad is False by default

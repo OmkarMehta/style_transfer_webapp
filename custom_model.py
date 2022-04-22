@@ -34,7 +34,7 @@ class CustomModel(torch.nn.Module):
         self.norm5 = torch.nn.InstanceNorm2d(64, affine=True)
         self.deconv3 = UpSampleConv(64, 32, kernel_size=3, stride=1, upsample=2)
         self.norm6 = torch.nn.InstanceNorm2d(32, affine=True)
-        self.deconv4 = UpSampleConv(32, 3, kernel_size=3, stride=1)
+        self.deconv4 = UpSampleConv(32, 3, kernel_size=3, stride=1, upsample=2)
 
         # ReLU activation function
         self.relu = torch.nn.ReLU()

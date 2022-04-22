@@ -58,7 +58,7 @@ class VGG16(torch.nn.Module):
         self.conv5_3.weight.data = self.vgg[28].weight.data
         self.pool5 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.relu = torch.nn.ReLU()
+        self.relu = torch.nn.ReLU(inplace=False)
 
         # Up-sampling layers
         self.deconv1 = UpSampleConv(512, 256, kernel_size=3, stride=1, upsample=2)
