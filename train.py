@@ -76,6 +76,9 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
     # get the gram matrix of the style image
     gram_style = [utils.gram_matrix(y) for y in features_style]
 
+    # Define an empty list to store the total loss
+    total_loss_list = [0] * num_epochs
+
     for epoch in range(num_epochs):
         # train the model
         model.train()
@@ -143,13 +146,47 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
             content_loss_total += content_loss.item()
             style_loss_total += style_loss.item()
 
-            # print the loss
-            if batch_id % 500 == 0:
-                print('Epoch {}/{}'.format(epoch + 1, num_epochs))
-                print('Content Loss: {:4f}'.format(content_loss_total / (batch_id + 1)))
-                print('Style Loss: {:4f}'.format(style_loss_total / (batch_id + 1)))
-                print('Total Loss: {:4f}'.format(content_loss_total / (batch_id + 1) + style_loss_total / (batch_id + 1)))
-                print()
+
+        # print the loss
+        print('Epoch {}/{}'.format(epoch + 1, num_epochs))
+        print('Content Loss: {:4f}'.format(content_loss_total / (batch_id + 1)))
+        print('Style Loss: {:4f}'.format(style_loss_total / (batch_id + 1)))
+        print('Total Loss: {:4f}'.format(content_loss_total / (batch_id + 1) + style_loss_total / (batch_id + 1)))
+        print()
+
+        # Load content image
+        content_util = utils.load_image('content/omkar.jpg')
+
+        # Define transform util
+        transform_util = transforms.Compose([
+            transforms.ToTensor(), # convert the image to a tensor
+            transforms.Lambda(lambda x: x.mul(255)) # scale the image.
+        ])
+
+        # Transform content image
+        content_util = transform_util(content_util)
+        content_util = content_util.unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            model.eval()
+            output = model(content_util).cpu()
+        
+        # Save the generated image
+        utils.save_image(output[0], 'output/{}_{}_{}.jpg'.format(model_name,
+                                                                style_image_path.split('/')[-1].split('.')[0],
+                                                                epoch + 1))
+
+
+        # Storing the loss in the epoch list
+        total_loss_list[epoch] = content_loss_total / (batch_id + 1) + style_loss_total / (batch_id + 1)
+
+        # Adding early stopping below
+        # Checking the loss after first 4 epochs has been done
+        if epoch > 3:
+            last_four_epoch_avg_loss = np.mean(total_loss_list[(epoch - 4): epoch])
+            if abs(last_four_epoch_avg_loss - total_loss_list[epoch]) < 1000:
+                break
+        
             
     # save the model
     model.eval().cpu()
