@@ -24,3 +24,12 @@ def gram_matrix(y):
     # get the gram matrix
     gram = torch.bmm(features, features.transpose(1, 2))/ (ch * h * w)
     return gram
+
+def save_image(filename, data):
+    # convert the data to numpy array
+    img = data.clone().clamp(0, 255).numpy()
+    # reshape the numpy array
+    img = img.transpose(1, 2, 0).astype("uint8")
+    # save the image
+    img = Image.fromarray(img)
+    img.save(filename)

@@ -98,7 +98,7 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
             # pass content images through the model (either vgg or custom)
             generated_images = model(content_images)
             # print the shape of the generated images
-            print('Generated images shape: {}'.format(generated_images.shape))
+            # print('Generated images shape: {}'.format(generated_images.shape))
 
             # normalize the generated image as well as the content images
             # this is done to make the loss function more robust
@@ -112,19 +112,19 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
             # extract the features of the generated images and the content images
             features_generated = vgg16_fe(generated_images)
             # print the shape of the features
-            print('Features generated shape: {}'.format(features_generated.x2.shape))
+            # print('Features generated shape: {}'.format(features_generated.x2.shape))
             features_content = vgg16_fe(content_images)
             # print the shape of the features
-            print('Features content shape: {}'.format(features_content.x2.shape))
+            # print('Features content shape: {}'.format(features_content.x2.shape))
 
             # calculate the content loss
             content_loss = content_weight * criterion(features_generated.x2, features_content.x2)
-            print('Content loss: {}'.format(content_loss.item()))
+            # print('Content loss: {}'.format(content_loss.item()))
 
             # calculate the style loss
             style_loss = 0.0
             for feat_y, gram_st in zip(features_generated, gram_style):
-                print ('feat_y shape: {}'.format(feat_y.shape))
+                # print ('feat_y shape: {}'.format(feat_y.shape))
                 gram_y = utils.gram_matrix(feat_y) # get the gram matrix of the generated image
                 # calculate the style loss between gram matrix of generated image and gram matrix of style image
                 style_loss += criterion(gram_y, gram_st[:n_batch, :, :].clone()) 
@@ -158,6 +158,32 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
     torch.save(model.state_dict(), model_path)
 
     print(f"Model saved to {model_path}")
+
+
+def stylize(content_image_path, output_image_path):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # load content image
+    content_image = utils.load_image(content_image_path)
+    # transform the content image
+    content_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: x.mul(255))
+    ])
+    content_image = content_transform(content_image)
+    content_image = content_image.unsqueeze(0).to(device)
+    # load the model
+    with torch.no_grad():
+        style_model = VGG16(requires_grad=False).to(device)
+        style_dict = torch.load('models/rain_princess_vgg.pth')
+        style_model.load_state_dict(style_dict)
+        # add it to the device
+        style_model.to(device)
+        # pass the content image through the model
+        style_model.eval()
+        output = style_model(content_image).cpu()
+    
+    utils.save_image(output_image_path, output[0])
+
 
 
 
