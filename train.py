@@ -23,6 +23,7 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
         transforms.Resize(128), # resize the image to 256x256
         transforms.CenterCrop(128), # center crop the image to 256x256
         transforms.ToTensor(), # convert the image to a tensor
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), # normalize the image
         transforms.Lambda(lambda x: x.mul(255)) # scale the image.
     ])
 
@@ -41,7 +42,7 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
     vgg16_fe = model_zoo['vgg_fe']().to(device) # requires_grad is False by default
 
     # optimizer
-    optimizer = Adam(model.parameters(), lr=0.001)
+    optimizer = Adam(model.parameters(), lr=1)
     # loss function
     criterion = torch.nn.MSELoss()
 
@@ -81,7 +82,7 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
 
     for epoch in range(num_epochs):
         # train the model
-        model.train()
+        model.train().to(device)
         # initialize the content loss and style loss
         content_loss_total = 0.0
         style_loss_total = 0.0
@@ -121,7 +122,7 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
             # print('Features content shape: {}'.format(features_content.x2.shape))
 
             # calculate the content loss
-            content_loss = content_weight * criterion(features_generated.x2, features_content.x2)
+            content_loss = content_weight * criterion(features_generated.x1, features_content.x1)
             # print('Content loss: {}'.format(content_loss.item()))
 
             # calculate the style loss
@@ -154,6 +155,12 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
         print('Total Loss: {:4f}'.format(content_loss_total / (batch_id + 1) + style_loss_total / (batch_id + 1)))
         print()
 
+        # save the model
+        model.eval().cpu()
+        model_filename = '{}_{}_{}.pth'.format(style_image_path.split('/')[-1].split('.')[0], model_name, epoch+1)
+        model_path = 'models/{}'.format(model_filename)
+        torch.save(model.state_dict(), model_path)
+
         # Load content image
         content_util = utils.load_image('content/omkar.jpg')
 
@@ -165,20 +172,22 @@ def train(content_weight=float(1e5), style_weight=float(1e10), num_epochs=10, ba
 
         # Transform content image
         content_util = transform_util(content_util)
-        content_util = content_util.unsqueeze(0).to(device)
+        content_util = content_util.unsqueeze(0)
 
         with torch.no_grad():
             model.eval()
             output = model(content_util).cpu()
         
         # Save the generated image
-        utils.save_image(output[0], 'output/{}_{}_{}.jpg'.format(model_name,
+        utils.save_image('output/{}_{}_{}.jpg'.format(model_name,
                                                                 style_image_path.split('/')[-1].split('.')[0],
-                                                                epoch + 1))
+                                                                epoch + 1), output[0])
 
 
         # Storing the loss in the epoch list
         total_loss_list[epoch] = content_loss_total / (batch_id + 1) + style_loss_total / (batch_id + 1)
+
+        
 
         # Adding early stopping below
         # Checking the loss after first 4 epochs has been done
