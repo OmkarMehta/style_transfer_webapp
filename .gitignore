@@ -133,3 +133,5 @@ dmypy.json
 .jpeg
 .jpg
 ./style-transfer-from-scratch/milestone2/.pth
+coco/models/
+

@@ -3,7 +3,7 @@ import torch
 from torchvision import models
 
 class VGG16(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, vgg_path="models/vgg16-00b39a1b.pth"):
         super(VGG16, self).__init__()
         # # load the pre-trained model and get features
         # # self.vgg = models.vgg16(pretrained=True).features
@@ -60,39 +60,54 @@ class VGG16(torch.nn.Module):
 
         # self.relu = torch.nn.ReLU()
 
-        self.ConvBlock = torch.nn.Sequential(
-            ConvLayer(3, 64, 3, 1), # conv1_1
-            torch.nn.ReLU(),
-            ConvLayer(64, 64, 3, 1), # conv1_2
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2, 2), # pool1
-            ConvLayer(64, 128, 3, 1), # conv2_1
-            torch.nn.ReLU(),
-            ConvLayer(128, 128, 3, 1), # conv2_2
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2, 2), # pool2
-            ConvLayer(128, 256, 3, 1), # conv3_1
-            torch.nn.ReLU(),
-            ConvLayer(256, 256, 3, 1), # conv3_2
-            torch.nn.ReLU(),
-            ConvLayer(256, 256, 3, 1), # conv3_3
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2, 2), # pool3
-            ConvLayer(256, 512, 3, 1), # conv4_1
-            torch.nn.ReLU(),
-            ConvLayer(512, 512, 3, 1), # conv4_2
-            torch.nn.ReLU(),
-            ConvLayer(512, 512, 3, 1), # conv4_3
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2, 2), # pool4
-            ConvLayer(512, 512, 3, 1), # conv5_1
-            torch.nn.ReLU(),
-            ConvLayer(512, 512, 3, 1), # conv5_2
-            torch.nn.ReLU(),
-            ConvLayer(512, 512, 3, 1), # conv5_3
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2, 2), # pool5
-        )
+        # self.ConvBlock = torch.nn.Sequential(
+        #     ConvLayer(3, 64, 3, 1), # conv1_1
+        #     torch.nn.ReLU(),
+        #     ConvLayer(64, 64, 3, 1), # conv1_2
+        #     torch.nn.ReLU(),
+        #     torch.nn.MaxPool2d(2, 2), # pool1
+        #     ConvLayer(64, 128, 3, 1), # conv2_1
+        #     torch.nn.ReLU(),
+        #     ConvLayer(128, 128, 3, 1), # conv2_2
+        #     torch.nn.ReLU(),
+        #     torch.nn.MaxPool2d(2, 2), # pool2
+        #     ConvLayer(128, 256, 3, 1), # conv3_1
+        #     torch.nn.ReLU(),
+        #     ConvLayer(256, 256, 3, 1), # conv3_2
+        #     torch.nn.ReLU(),
+        #     ConvLayer(256, 256, 3, 1), # conv3_3
+        #     torch.nn.ReLU(),
+        #     torch.nn.MaxPool2d(2, 2), # pool3
+        #     ConvLayer(256, 512, 3, 1), # conv4_1
+        #     torch.nn.ReLU(),
+        #     ConvLayer(512, 512, 3, 1), # conv4_2
+        #     torch.nn.ReLU(),
+        #     ConvLayer(512, 512, 3, 1), # conv4_3
+        #     torch.nn.ReLU(),
+        #     torch.nn.MaxPool2d(2, 2), # pool4
+        #     ConvLayer(512, 512, 3, 1), # conv5_1
+        #     torch.nn.ReLU(),
+        #     ConvLayer(512, 512, 3, 1), # conv5_2
+        #     torch.nn.ReLU(),
+        #     ConvLayer(512, 512, 3, 1), # conv5_3
+        #     torch.nn.ReLU(),
+        #     torch.nn.MaxPool2d(2, 2), # pool5
+        # )
+
+        # load the model of vgg16 with pretrained set to False
+        vgg16_features = models.vgg16(pretrained=False)
+        # load the weights of vgg16 from umich, cited in the report
+        vgg16_features.load_state_dict(torch.load(vgg_path), strict=False)
+        # get the features of vgg16
+        self.features = vgg16_features.features
+
+        for name, param in self.features.named_parameters():
+            if param.requires_grad == True:
+                if '26' in name or '28' in name:
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+
 
         # Up-sampling layers
         # self.deconv1 = UpSampleConv(512, 256, kernel_size=3, stride=1, upsample=2)
@@ -104,21 +119,9 @@ class VGG16(torch.nn.Module):
         self.DeConvBlock = torch.nn.Sequential(
             UpSampleConv(512, 512, 3, 2, 1), # deconv5_1
             torch.nn.ReLU(),
-            UpSampleConv(512, 512, 3, 2, 1), # deconv5_2
-            torch.nn.ReLU(),
-            UpSampleConv(512, 512, 3, 2, 1), # deconv5_3
-            torch.nn.ReLU(),
             UpSampleConv(512, 256, 3, 2, 1), # deconv4_1
             torch.nn.ReLU(),
-            UpSampleConv(256, 256, 3, 2, 1), # deconv4_2
-            torch.nn.ReLU(),
-            UpSampleConv(256, 256, 3, 2, 1), # deconv4_3
-            torch.nn.ReLU(),
             UpSampleConv(256, 128, 3, 2, 1), # deconv3_1
-            torch.nn.ReLU(),
-            UpSampleConv(128, 128, 3, 2, 1), # deconv3_2
-            torch.nn.ReLU(),
-            UpSampleConv(128, 128, 3, 2, 1), # deconv3_3
             torch.nn.ReLU(),
             UpSampleConv(128, 64, 3, 2, 1), # deconv2_1
             torch.nn.ReLU(),
@@ -129,7 +132,7 @@ class VGG16(torch.nn.Module):
             ConvLayer(32, 3, 3, 1, norm = 'None')  
         )              
     def forward(self, x):
-        x = self.ConvBlock(x)
+        x = self.features(x)
         x = self.DeConvBlock(x)
         return x
 
@@ -164,7 +167,7 @@ class UpSampleConv(torch.nn.Module):
     '''
     Inspired from http://distill.pub/2016/deconv-checkerboard/
     '''
-    def __init__(self, in_channels, out_channels, kernel_size, stride, output_padding, norm = 'batch'):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, output_padding, norm = 'instance'):
         super(UpSampleConv, self).__init__()
 
         # # get upsample 
