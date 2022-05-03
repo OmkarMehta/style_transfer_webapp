@@ -3,7 +3,7 @@ import torch
 from torchvision import models
 
 class VGG16(torch.nn.Module):
-    def __init__(self, requires_grad=True):
+    def __init__(self):
         super(VGG16, self).__init__()
         # # load the pre-trained model and get features
         # # self.vgg = models.vgg16(pretrained=True).features
