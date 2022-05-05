@@ -232,11 +232,20 @@ class VGG16(torch.nn.Module):
         # load the weights of vgg16 from umich, cited in the report
         vgg16_features.load_state_dict(torch.load(vgg_path), strict=False)
         # get the features of vgg16
-        self.features = vgg16_features.features
+        self.features = vgg16_features.features[:20]
+        self.conv21 = vgg16_features.features[21]
+        self.in21 = torch.nn.InstanceNorm2d(512, affine=True)
+        self.conv24 = vgg16_features.features[24]
+        self.in24 = torch.nn.InstanceNorm2d(512, affine=True)
+        self.conv26 = vgg16_features.features[26]
+        self.in26 = torch.nn.InstanceNorm2d(512, affine=True)
+        self.conv28 = vgg16_features.features[28]
+        self.in28 = torch.nn.InstanceNorm2d(512, affine=True)
+        self.relu = torch.nn.ReLU()
 
-        for name, param in self.features.named_parameters():
+        for name, param in vgg16_features.features.named_parameters():
             if param.requires_grad == True:
-                if '26' in name or '28' in name:
+                if '26' in name or '28' in name or '24' in name or '21' in name:
                     param.requires_grad = True
                 else:
                     param.requires_grad = False
@@ -249,28 +258,53 @@ class VGG16(torch.nn.Module):
         # self.deconv4 = UpSampleConv(64, 32, kernel_size=3, stride=1, upsample=2)
         # self.deconv5 = UpSampleConv(32, 3, kernel_size=3, stride=1, upsample=2)
 
+        # self.DeConvBlock = torch.nn.Sequential(
+        #     UpSampleConv(512, 512, 3, 2, 1), # deconv5_1
+        #     torch.nn.ReLU(),
+        #     UpSampleConv(512, 256, 3, 2, 1), # deconv4_1
+        #     torch.nn.ReLU(),
+        #     # UpSampleConv(256, 256, 3, 2, 1), # deconv4_2
+        #     # torch.nn.ReLU(),
+        #     UpSampleConv(256, 128, 3, 2, 1), # deconv3_1
+        #     torch.nn.ReLU(),
+        #     UpSampleConv(128, 128, 3, 2, 1), # deconv3_2
+        #     torch.nn.ReLU(),
+        #     UpSampleConv(128, 64, 3, 2, 1), # deconv2_1
+        #     torch.nn.ReLU(),
+        #     UpSampleConv(64, 32, 3, 2, 1), # deconv2_2
+        #     torch.nn.ReLU(),
+        #     UpSampleConv(32, 32, 3, 2, 1), # deconv2_2
+        #     torch.nn.ReLU(),
+        #     ConvLayer(32, 3, 3, 4, norm = 'None')  
+        # )    
+
         self.DeConvBlock = torch.nn.Sequential(
-            UpSampleConv(512, 512, 3, 2, 1), # deconv5_1
+            # UpSampleConv(512, 512, 3, 2, 1), # deconv5_1
+            # torch.nn.ReLU(),
+            UpSampleConv(512, 128, 3, 2, 1), # deconv4_1
             torch.nn.ReLU(),
-            UpSampleConv(512, 256, 3, 2, 1), # deconv4_1
-            torch.nn.ReLU(),
-            UpSampleConv(256, 128, 3, 2, 1), # deconv3_1
-            torch.nn.ReLU(),
+            # UpSampleConv(256, 128, 3, 2, 1), # deconv3_1
+            # torch.nn.ReLU(),
             UpSampleConv(128, 64, 3, 2, 1), # deconv2_1
             torch.nn.ReLU(),
-            UpSampleConv(64, 64, 3, 2, 1), # deconv2_2
-            torch.nn.ReLU(),
+            # UpSampleConv(64, 64, 3, 2, 1), # deconv2_2
+            # torch.nn.ReLU(),
             UpSampleConv(64, 32, 3, 2, 1), # deconv1_1
             torch.nn.ReLU(),
-            ConvLayer(32, 3, 7, 2, norm = 'None')  
-        )              
+            ConvLayer(32, 3, 7, 1, norm = 'None')  
+        )             
     def forward(self, x):
         x = self.features(x)
+        x = self.relu(self.in21(self.conv21(x)))
+        x = self.relu(self.in24(self.conv24(x)))
+        x = self.relu(self.in26(self.conv26(x)))
+        x = self.relu(self.in28(self.conv28(x)))
         x = self.DeConvBlock(x)
+
         return x
 
 class ConvLayer(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, norm = 'batch'):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, norm = 'instance'):
         super(ConvLayer, self).__init__()
         # we have added reflection padding to add padding around the image
         self.ref_pad = torch.nn.ReflectionPad2d(kernel_size // 2)
