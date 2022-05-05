@@ -262,7 +262,7 @@ class VGG16(torch.nn.Module):
             torch.nn.ReLU(),
             UpSampleConv(64, 32, 3, 2, 1), # deconv1_1
             torch.nn.ReLU(),
-            ConvLayer(32, 3, 3, 1, norm = 'None')  
+            ConvLayer(32, 3, 7, 2, norm = 'None')  
         )              
     def forward(self, x):
         x = self.features(x)
@@ -274,7 +274,7 @@ class ConvLayer(torch.nn.Module):
         super(ConvLayer, self).__init__()
         # we have added reflection padding to add padding around the image
         self.ref_pad = torch.nn.ReflectionPad2d(kernel_size // 2)
-        self.conv2d = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=1)
+        self.conv2d = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride)
 
         # Normalization Layers
         self.norm_type = norm

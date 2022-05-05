@@ -258,11 +258,11 @@ class VGG16(torch.nn.Module):
             torch.nn.ReLU(),
             UpSampleConv(128, 64, 3, 2, 1), # deconv2_1
             torch.nn.ReLU(),
-            # UpSampleConv(64, 64, 3, 2, 1), # deconv2_2
-            # torch.nn.ReLU(),
+            UpSampleConv(64, 64, 3, 2, 1), # deconv2_2
+            torch.nn.ReLU(),
             UpSampleConv(64, 32, 3, 2, 1), # deconv1_1
             torch.nn.ReLU(),
-            ConvLayer(32, 3, 8, 1, norm = 'None')  
+            ConvLayer(32, 3, 7, 2, norm = 'None')  
         )              
     def forward(self, x):
         x = self.features(x)
