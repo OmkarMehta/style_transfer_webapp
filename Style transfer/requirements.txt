@@ -1,0 +1,7 @@
+numpy
+torch==1.8.1
+torchvision==0.9.1
+Pillow==9.0.1
+opencv-python==4.5.5.64
+requests==2.24.0
+fast-dash==0.1.5

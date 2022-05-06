@@ -132,6 +132,8 @@ dmypy.json
 .pth
 .jpeg
 .jpg
-./style-transfer-from-scratch/milestone2/.pth
+style-transfer-from-scratch/milestone2/
 coco/models/
-
+Style transfer/models/Custom/
+Style transfer/models/VGG16/
+*.zip
