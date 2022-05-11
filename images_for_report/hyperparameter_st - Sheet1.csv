@@ -1,0 +1,21 @@
+Model,Dataset,Style,TRAIN_IMAGE_SIZE,NUM_EPOCHS,BATCH_SIZE,CONTENT_WEIGHT,STYLE_WEIGHT,ADAM_LR,CONTENT_LAYER
+AONet,COCO Val,Rain Princess,256,1,4,17,50,0.001,relu2_2
+,,The Scream,256,1,4,17,50,0.001,relu2_2
+,,The Shipwreck,256,1,4,17,50,0.001,relu2_2
+,,Udnie,256,1,4,17,50,0.001,relu2_2
+,,Wave,256,1,4,17,50,0.001,relu2_2
+,TinyImageNet,Rain Princess,256,1,4,17,50,0.001,relu1_2
+,,The Scream,256,1,4,17,50,0.001,relu1_2
+,,The Shipwreck,256,1,4,17,50,0.001,relu1_2
+,,Udnie,256,1,4,17,50,0.001,relu1_2
+,,Wave,256,1,4,17,50,0.001,relu1_2
+VGG16,COCO Val,Rain Princess,256,1,4,17,50,0.001,relu2_2
+,,The Scream,256,1,4,17,50,0.001,relu2_2
+,,The Shipwreck,256,1,4,17,50,0.001,relu2_2
+,,Udnie,256,1,4,17,50,0.001,relu2_2
+,,Wave,256,1,4,17,50,0.001,relu2_2
+,TinyImageNet,Rain Princess,224,1,4,1,5,0.001,relu1_2
+,,The Scream,256,1,4,1,5,0.001,relu1_2
+,,The Shipwreck,256,1,4,1,5,0.001,relu1_2
+,,Udnie,256,1,4,1,5,0.001,relu1_2
+,,Wave,256,1,4,1,5,0.001,relu1_2
